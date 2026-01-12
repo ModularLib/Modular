@@ -1,4 +1,4 @@
-# Modular Framework (Plain Java)
+# Modular Framework
 
 ![Java](https://img.shields.io/badge/Java-25-informational)
 ![Build Tool](https://img.shields.io/badge/Build-Maven-informational)
