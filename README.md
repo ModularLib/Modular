@@ -65,7 +65,6 @@ public final class AppPlugin {
 var runtime = ModuleRuntime.builder()
         .register(ConfigFeature.class)
         .register(AppPlugin.class)
-        .registerPackage("your.package")
         .build();
 
 runtime.start();
@@ -73,6 +72,55 @@ runtime.start();
 var plugin = runtime.require(AppPlugin.class);
 
 runtime.stop();
+```
+
+---
+
+## Discovery (Annotation Processor)
+
+The framework can discover modules **without runtime classpath scanning**.
+
+During compilation, an annotation processor collects all classes annotated with `@CoreModule` and writes an index file into the JAR.
+
+At runtime, discovery reads these index files and registers the contained module classes.
+
+### Why this approach
+
+* no classpath scanners
+* deterministic and fast
+* works well with environments that use custom class loaders (e.g. plugin systems)
+
+### Usage
+
+```java
+var runtime = ModuleRuntime.builder()
+        .discoverFrom(AppPlugin.class)
+        .build();
+
+runtime.start();
+```
+
+### Discovery modes
+
+* `discoverFrom(Class<?> anchor)` (recommended)
+
+  * reads only the index resources that are visible from the anchor’s class loader
+  * intended for plugin-style environments to avoid accidentally collecting modules from other artifacts
+
+* `discover()`
+
+  * reads indices from the configured `ClassLoader` of the runtime
+
+### Package filtering
+
+Package selection is implemented as a filter on discovered class names.
+
+```java
+var runtime = ModuleRuntime.builder()
+        .discoverFrom("com.example.modules", AppPlugin.class)
+        .build();
+
+runtime.start();
 ```
 
 ---
@@ -191,6 +239,41 @@ Recommended runtime helpers:
 * `api/` → `ModuleKind`, `ModuleRuntime` interface types
 * `context/` → `CoreContext`, `ServiceRegistry`
 * `runtime/` → resolver, graph sorting, module container/state
+
+---
+
+## Multiple runtimes
+
+Multiple `ModuleRuntime` instances can exist in the same JVM.
+
+Design rules:
+
+* no static/global registries
+* each runtime owns its own module instances, lifecycle state, services, and injector
+* discovery uses an explicit `ClassLoader` (no shared global state)
+
+### Plugin environments (Spigot / Paper)
+
+In plugin-based runtimes it is common that multiple plugins include the framework.
+
+Recommended practice:
+
+* create a separate `ModuleRuntime` per plugin
+* use `discoverFrom(YourPluginMain.class)` to keep discovery scoped to the plugin’s class loader
+
+Example:
+
+```java
+var runtime = ModuleRuntime.builder()
+        .discoverFrom(MyPlugin.class)
+        .build();
+
+runtime.start();
+```
+
+### Shared runtime (optional)
+
+A single runtime can be shared across multiple artifacts only when it is done explicitly (for example, one host component creates the runtime and provides access to other components via an API).
 
 ---
 
