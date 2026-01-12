@@ -65,7 +65,7 @@ public final class AppPlugin {
 var runtime = ModuleRuntime.builder()
         .register(ConfigFeature.class)
         .register(AppPlugin.class)
-        .registerPackage(your.package)
+        .registerPackage("your.package")
         .build();
 
 runtime.start();
