@@ -1,5 +1,8 @@
 # Modular Framework (Plain Java)
 
+![Java](https://img.shields.io/badge/Java-25-informational)
+![Build Tool](https://img.shields.io/badge/Build-Maven-informational)
+
 A small, dependency-based module framework for Java applications.
 
 * **Kinds:** `PLUGIN` and `FEATURE`
@@ -123,13 +126,38 @@ Execution order:
 
 ## Injection
 
-The framework supports minimal dependency injection via `@Inject`.
+The framework provides minimal dependency injection via `@Inject`.
 
 Common injections:
 
 * `CoreContext`
 * `ModuleRuntime`
 * services registered in the `ServiceRegistry`
+
+### Injector
+
+An `Injector` is available to inject dependencies into **any existing instance**, not only modules.
+
+Typical use-cases:
+
+* wiring objects created outside the module system
+* injecting shared services into helper classes
+
+Example:
+
+```java
+var runtime = ModuleRuntime.builder()
+        .register(AppPlugin.class)
+        .build();
+
+runtime.start();
+
+var injector = runtime.injector();
+
+var handler = new RequestHandler();
+
+injector.injectInto(handler);
+```
 
 ---
 
@@ -162,3 +190,17 @@ Recommended runtime helpers:
 * `api/` → `ModuleKind`, `ModuleRuntime` interface types
 * `context/` → `CoreContext`, `ServiceRegistry`
 * `runtime/` → resolver, graph sorting, module container/state
+
+---
+
+## License
+
+This project is licensed under **Creative Commons Attribution–NonCommercial–NoDerivatives 4.0 International (CC BY-NC-ND 4.0)**.
+
+In short:
+
+* **Attribution required** when sharing
+* **No commercial use**
+* **No distribution of modified versions** (no derivatives)
+
+See the `LICENSE` file in the repository for the full license text.
